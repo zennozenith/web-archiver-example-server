@@ -1,0 +1,18 @@
+/temp
+/target
+/static/vite
+/db.sqlite*
+/archives/*
+!archives/.gitkeep
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+

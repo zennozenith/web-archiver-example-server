@@ -1,0 +1,33 @@
+[package]
+name = "myopic"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+axum = { version = "0.8.9", features = ["macros", "multipart", "ws"] }
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.9", features = ["chrono", "migrate", "runtime-tokio", "sqlite"] }
+tokio = { version = "1.53.1", features = ["full"] }
+tower-http = { version = "0.7.1", features = ["cors", "fs", "set-status", "trace"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+url = { version = "2.5.8", features = ["serde"] }
+uuid = {
+  version = "1",
+  features = [
+    "fast-rng",  # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics",  # Enable better diagnostics for compile-time UUIDs
+    "serde",
+    "v4",
+    "v7",
+  ]
+}
+
+[dev-dependencies]
+
+[features]
+default = []
+postgres = ["sqlx/tls-native-tls"]
+vendored = []  # Compile and statically link a copy of OpenSSL

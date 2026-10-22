@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web Archive</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗄️</text></svg>"
+    />
+    <style>
+      :root {
+        --bg: #e9edf0;
+        --panel: #f7f9fa;
+        --ink: #18222b;
+        --muted: #5d6b77;
+        --line: #cdd5db;
+        --accent: #1f5f8b;
+        --accent-ink: #fff;
+        --queue: #9a5b00;
+        --danger: #a8281e;
+        --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+        --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #12181d;
+          --panel: #1a2229;
+          --ink: #e4eaee;
+          --muted: #8e9ca7;
+          --line: #2c3841;
+          --accent: #6db3e0;
+          --accent-ink: #0b1319;
+          --queue: #e0a84a;
+          --danger: #ff8a7d;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+      }
+      a {
+        color: var(--accent);
+      }
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem 2rem;
+        align-items: baseline;
+        justify-content: space-between;
+        max-width: 78rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 1rem;
+      }
+      h1 {
+        font: 600 2rem/1.1 var(--serif);
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .stats {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 21rem;
+        gap: 1.5rem;
+        align-items: start;
+        max-width: 78rem;
+        margin: 0 auto;
+        padding: 0 1.25rem 4rem;
+      }
+      @media (max-width: 62rem) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      h2 {
+        font: 600 1.15rem/1.2 var(--serif);
+        margin: 0 0 0.75rem;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 1rem;
+      }
+      aside .panel {
+        border-left: 4px solid var(--queue);
+        position: sticky;
+        top: 1rem;
+      }
+
+      input[type="text"],
+      input[type="search"],
+      input[type="url"] {
+        width: 100%;
+        padding: 0.55rem 0.7rem;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      }
+      .row {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn {
+        padding: 0.5rem 0.85rem;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        border-color: var(--ink);
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: var(--accent-ink);
+        border-color: var(--accent);
+        font-weight: 600;
+      }
+      .btn.danger {
+        color: var(--danger);
+      }
+      .btn.danger:hover {
+        border-color: var(--danger);
+      }
+      .btn.small {
+        padding: 0.2rem 0.55rem;
+        font-size: 0.85rem;
+      }
+
+      .search {
+        margin-bottom: 1rem;
+      }
+      .site {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        margin-bottom: 0.6rem;
+      }
+      .site-head {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.75rem 1rem;
+      }
+      .site-toggle {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+      }
+      .site-title {
+        display: block;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .site-url {
+        display: block;
+        color: var(--muted);
+        font-size: 0.85rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .count {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0 0.6rem;
+        font-size: 0.85rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .when {
+        color: var(--muted);
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
+      @media (max-width: 40rem) {
+        .when {
+          display: none;
+        }
+      }
+
+      .versions {
+        border-top: 1px solid var(--line);
+        padding: 0.25rem 1rem 0.5rem;
+      }
+      .version {
+        display: grid;
+        grid-template-columns: 7.5rem 1fr auto;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        align-items: start;
+      }
+      .version + .version {
+        border-top: 1px dashed var(--line);
+      }
+      .thumb {
+        width: 7.5rem;
+        height: 4.75rem;
+        object-fit: cover;
+        object-position: top;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        background: var(--bg);
+      }
+      .thumb.none {
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .v-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .v-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.25rem;
+        font-size: 0.9rem;
+      }
+      .latest {
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 0.8rem;
+        margin-left: 0.4rem;
+      }
+      @media (max-width: 40rem) {
+        .version {
+          grid-template-columns: 5rem 1fr;
+        }
+        .version .btn {
+          grid-column: 2;
+          justify-self: start;
+        }
+        .thumb {
+          width: 5rem;
+          height: 3.5rem;
+        }
+      }
+
+      .pending-item {
+        padding: 0.6rem 0;
+        border-top: 1px solid var(--line);
+        display: flex;
+        gap: 0.5rem;
+        align-items: start;
+      }
+      .pending-item:first-of-type {
+        border-top: 0;
+      }
+      .pending-item .txt {
+        flex: 1;
+        min-width: 0;
+      }
+      .pending-item a {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .empty {
+        color: var(--muted);
+        margin: 0.5rem 0 0;
+      }
+      .add {
+        margin-bottom: 1rem;
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.08rem 0.3rem 0.08rem 0.55rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+      .tag-chip button {
+        background: none;
+        border: 0;
+        padding: 0 0.25rem;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1;
+      }
+      .tag-chip button:hover {
+        color: var(--danger);
+      }
+      .site-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        align-items: center;
+        padding: 0 1rem 0.75rem;
+      }
+      .tag-add,
+      .tag-input {
+        border: 1px dashed var(--line);
+        border-radius: 999px;
+        background: var(--bg);
+        font-size: 0.8rem;
+        padding: 0.08rem 0.55rem;
+        color: var(--muted);
+        width: 7rem;
+      }
+      .tag-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-top: 1px solid var(--line);
+      }
+      .tag-row:first-of-type {
+        border-top: 0;
+      }
+      .tag-row .name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tag-row .usage {
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .tag-row .btn {
+        flex: none;
+      }
+
+      #toast {
+        position: fixed;
+        bottom: 1.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--ink);
+        color: var(--bg);
+        padding: 0.55rem 1rem;
+        border-radius: 4px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        max-width: 90vw;
+      }
+      #toast.show {
+        opacity: 1;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #toast {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Web Archive</h1>
+      <div class="stats" id="stats" aria-live="polite"></div>
+    </header>
+
+    <main>
+      <section aria-labelledby="archives-h">
+        <h2 id="archives-h">Archived pages</h2>
+        <input
+          class="search"
+          type="search"
+          id="search"
+          placeholder="Filter by title, URL, or tag"
+          aria-label="Filter archived pages"
+        />
+        <div id="archives"></div>
+      </section>
+
+      <aside aria-labelledby="pending-h">
+        <div class="panel">
+          <h2 id="pending-h">Pending queue</h2>
+          <form class="add" id="add-form">
+            <input
+              type="url"
+              id="add-url"
+              placeholder="https://example.com/page"
+              required
+              aria-label="URL to queue"
+            />
+            <input type="text" id="add-title" placeholder="Title (optional)" aria-label="Title" />
+            <button class="btn primary" type="submit">Add to queue</button>
+          </form>
+          <div id="pending"></div>
+        </div>
+
+        <div class="panel" style="margin-top: 1rem">
+          <h2 id="tags-h">Tags</h2>
+          <form class="add" id="tag-form">
+            <input
+              type="text"
+              id="tag-name"
+              placeholder="New tag name"
+              aria-label="New tag name"
+              maxlength="64"
+            />
+            <button class="btn primary" type="submit">Add tag</button>
+          </form>
+          <div id="tags"></div>
+        </div>
+      </aside>
+    </main>
+    <div id="toast" role="status"></div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+        );
+      const state = { archives: [], pending: [], tags: [], open: new Set(), q: "" };
+
+      async function api(path, opts) {
+        const res = await fetch(path, opts);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        return data;
+      }
+      let toastTimer;
+      function toast(msg) {
+        const t = $("#toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove("show"), 2500);
+      }
+      const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+      function ago(iso) {
+        const s = (new Date(iso) - Date.now()) / 1000;
+        for (const [unit, secs] of [
+          ["day", 86400],
+          ["hour", 3600],
+          ["minute", 60],
+        ]) {
+          if (Math.abs(s) >= secs) return rtf.format(Math.round(s / secs), unit);
+        }
+        return "just now";
+      }
+      const full = (iso) => new Date(iso).toLocaleString();
+      const size = (n) =>
+        n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+
+      async function load() {
+        const [a, p, t] = await Promise.all([
+          api("/api/archives"),
+          api("/api/pending"),
+          api("/api/tags"),
+        ]);
+        state.archives = a.items;
+        state.pending = p.items;
+        state.tags = t.items;
+        render();
+      }
+
+      function render() {
+        const versions = state.archives.reduce((n, s) => n + s.count, 0);
+        $("#stats").textContent =
+          `${state.archives.length} pages · ${versions} versions · ${state.tags.length} tags · ${state.pending.length} queued`;
+
+        const q = state.q.toLowerCase();
+        const matchTags = (s) => s.tags.some((t) => t.name.toLowerCase().includes(q));
+        const sites = state.archives.filter(
+          (s) =>
+            !q || s.url.toLowerCase().includes(q) || s.title.toLowerCase().includes(q) || matchTags(s),
+        );
+        $("#archives").innerHTML = sites.length
+          ? sites.map(siteHtml).join("")
+          : `<p class="empty">${state.archives.length ? "No pages match that filter." : "Nothing archived yet. Capture a page with the extension and it will show up here."}</p>`;
+
+        $("#pending").innerHTML = state.pending.length
+          ? state.pending
+              .map(
+                (p) => `
+      <div class="pending-item">
+        <div class="txt">
+          <strong>${esc(p.title || p.url)}</strong>
+          <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.url)}</a>
+          <span class="v-meta">Added ${ago(p.addedAt)}</span>
+          ${p.tags && p.tags.length ? `<span class="v-meta">Tags: ${p.tags.map(esc).join(", ")}</span>` : ""}
+        </div>
+        <button class="btn small danger" data-act="rm-pending" data-id="${esc(p.id)}" aria-label="Remove ${esc(p.url)} from queue">Remove</button>
+      </div>`,
+              )
+              .join("")
+          : `<p class="empty">Queue is empty. Add a URL above, then open it and capture it with the extension.</p>`;
+
+        $("#tags").innerHTML = state.tags.length
+          ? state.tags
+              .map(
+                (t) => `
+        <div class="tag-row">
+          <span class="name">${esc(t.name)}</span>
+          <span class="usage">${t.usage} ${t.usage === 1 ? "page" : "pages"}</span>
+          <button class="btn small" data-act="rn-tag" data-id="${esc(t.id)}" data-name="${esc(t.name)}" aria-label="Rename tag ${esc(t.name)}">Rename</button>
+          <button class="btn small danger" data-act="rm-tag" data-id="${esc(t.id)}" data-name="${esc(t.name)}" aria-label="Delete tag ${esc(t.name)}">Delete</button>
+        </div>`,
+              )
+              .join("")
+          : `<p class="empty">No tags yet. Created tags can be attached to your archived pages.</p>`;
+      }
+
+      function tagsHtml(s) {
+        const chips = s.tags.map(
+          (t) => `
+          <span class="tag-chip">${esc(t.name)}<button data-act="rm-site-tag" data-url="${esc(s.url)}" data-name="${esc(t.name)}" aria-label="Remove tag ${esc(t.name)} from ${esc(s.title)}">×</button></span>`,
+        );
+        return `
+        <div class="site-tags">
+          ${chips.join("")}
+          <input
+            class="tag-add"
+            type="text"
+            list="tag-list"
+            placeholder="add tag…"
+            data-url="${esc(s.url)}"
+            aria-label="Add tag to ${esc(s.title)}"
+          />
+          <datalist id="tag-list">
+            ${state.tags.map((t) => `<option value="${esc(t.name)}"></option>`).join("")}
+          </datalist>
+        </div>`;
+      }
+
+      function siteHtml(s) {
+        const open = state.open.has(s.url);
+        return `
+  <article class="site">
+    <div class="site-head">
+      <button class="site-toggle" data-act="toggle" data-url="${esc(s.url)}" aria-expanded="${open}">
+        <span class="site-title">${esc(s.title)}</span>
+        <span class="site-url">${esc(s.url)}</span>
+      </button>
+      <span class="when" title="${esc(full(s.lastArchived))}">${ago(s.lastArchived)}</span>
+      <span class="count">${s.count} ${s.count === 1 ? "version" : "versions"}</span>
+      <button class="btn small danger" data-act="rm-site" data-url="${esc(s.url)}" data-count="${s.count}">Delete all</button>
+    </div>
+    ${tagsHtml(s)}
+    ${open ? `<div class="versions">${s.versions.map((v, i) => versionHtml(v, i === 0)).join("")}</div>` : ""}
+  </article>`;
+      }
+
+      function versionHtml(v, latest) {
+        const base = `/archives/${encodeURIComponent(v.folder)}`;
+        const shot = `screenshot.${v.screenshotExt === "jpg" ? "jpg" : "png"}`;
+        return `
+  <div class="version">
+    ${
+      v.hasScreenshot
+        ? `<a href="${base}/${shot}" target="_blank" rel="noopener"><img class="thumb" loading="lazy" src="${base}/${shot}" alt="Screenshot from ${esc(full(v.archivedAt))}"></a>`
+        : `<div class="thumb none">No screenshot</div>`
+    }
+    <div>
+      <strong>${esc(full(v.archivedAt))}</strong>${latest ? '<span class="latest">Latest</span>' : ""}
+      <div class="v-meta">${v.htmlSize ? size(v.htmlSize) + " HTML" : "No HTML saved"}</div>
+      <div class="v-links">
+        ${v.htmlSize ? `<a href="${base}/page.html" target="_blank" rel="noopener">View page</a>` : ""}
+        <a href="${base}/metadata.json" target="_blank" rel="noopener">Metadata</a>
+      </div>
+    </div>
+    <button class="btn small danger" data-act="rm-version" data-id="${esc(v.id)}">Delete version</button>
+  </div>`;
+      }
+
+      document.addEventListener("click", async (e) => {
+        const el = e.target.closest("[data-act]");
+        if (!el) return;
+        const { act, url, id, count, name } = el.dataset;
+        try {
+          if (act === "toggle") {
+            state.open.has(url) ? state.open.delete(url) : state.open.add(url);
+            return render();
+          }
+          if (act === "rm-version") {
+            if (!confirm("Delete this version and its files?")) return;
+            await api(`/api/archives/${encodeURIComponent(id)}`, { method: "DELETE" });
+            toast("Version deleted");
+          }
+          if (act === "rm-site") {
+            if (!confirm(`Delete all ${count} version(s) of this page and their files?`)) return;
+            await api(`/api/archives?url=${encodeURIComponent(url)}`, { method: "DELETE" });
+            state.open.delete(url);
+            toast("Page deleted");
+          }
+          if (act === "rm-pending") {
+            await api(`/api/pending/${encodeURIComponent(id)}`, { method: "DELETE" });
+            toast("Removed from queue");
+          }
+          if (act === "rm-tag") {
+            if (!confirm(`Delete tag "${name}" from every page?`)) return;
+            await api(`/api/tags/${encodeURIComponent(id)}`, { method: "DELETE" });
+            toast("Tag deleted");
+          }
+          if (act === "rn-tag") {
+            const name2 = prompt("Rename tag", name)?.trim().slice(0, 64);
+            if (!name2 || name2 === name) return;
+            await api(`/api/tags/${encodeURIComponent(id)}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: name2 }),
+            });
+            toast("Tag renamed");
+          }
+          if (act === "rm-site-tag") {
+            const site = state.archives.find((s) => s.url === url);
+            await api("/api/sites/tags", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                url,
+                tags: site.tags.map((t) => t.name).filter((n) => n !== name),
+              }),
+            });
+            toast(`Removed tag "${name}"`);
+          }
+          await load();
+        } catch (err) {
+          toast(err.message);
+        }
+      });
+
+      $("#add-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          await api("/api/pending", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: $("#add-url").value, title: $("#add-title").value }),
+          });
+          e.target.reset();
+          toast("Added to queue");
+          await load();
+        } catch (err) {
+          toast(err.message);
+        }
+      });
+
+      $("#tag-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          await api("/api/tags", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: $("#tag-name").value }),
+          });
+          e.target.reset();
+          toast("Tag created");
+          await load();
+        } catch (err) {
+          toast(err.message);
+        }
+      });
+
+      document.addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter" || !e.target.matches(".tag-add")) return;
+        e.preventDefault();
+        const input = e.target;
+        const url = input.dataset.url;
+        const name = input.value.trim().slice(0, 64);
+        if (!name) return;
+        const site = state.archives.find((s) => s.url === url);
+        try {
+          await api("/api/sites/tags", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url,
+              tags: [...site.tags.map((t) => t.name), name],
+            }),
+          });
+          input.value = "";
+          toast(`Added tag "${name}"`);
+          await load();
+        } catch (err) {
+          toast(err.message);
+        }
+      });
+
+      $("#search").addEventListener("input", (e) => {
+        state.q = e.target.value;
+        render();
+      });
+
+      load().catch((err) => toast(err.message));
+      // Pick up captures made by the extension while this tab is open.
+      setInterval(() => document.hidden || load().catch(() => {}), 15000);
+    </script>
+  </body>
+</html>
