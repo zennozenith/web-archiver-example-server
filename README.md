@@ -9,13 +9,15 @@ Two fully functional, API-compatible implementations are included:
 | **Rust** | tokio + axum + sqlx (SQLite) + tracing | [`rust/src/main.rs`](rust/src/main.rs) |
 | **TypeScript** | Bun + `bun:sqlite` (zero npm dependencies) | [`typescript/server.ts`](typescript/server.ts) |
 
+The companion **browser extension** is available at [zennozenith/web-archiver-browser-extention](https://github.com/zennozenith/web-archiver-browser-extention).
+
 ## Features
 
 - 🗂️ **Archives with version history** — every capture of a URL is stored as a separate version (`page.html`, `screenshot.png/jpg`, `metadata.json`)
 - 🏷️ **Tags** — create, rename, and delete tags; tags are shared across all versions of a URL
 - 📥 **Pending queue** — queue URLs to archive later; the queue drains automatically when the URL is archived
 - 🖥️ **Web UI** — `index.html` is served at `/`
-- 🔌 **Browser-extension friendly** — CORS enabled everywhere, plus a `/api/pending/complete` endpoint for extension workflows
+- 🔌 **Browser-extension friendly** — CORS enabled everywhere, plus a `/api/pending/complete` endpoint for extension workflows — see [zennozenith/web-archiver-browser-extention](https://github.com/zennozenith/web-archiver-browser-extention)
 - 🔒 **Safe serving** — archived pages are served with a `sandbox` Content-Security-Policy and `X-Content-Type-Options: nosniff`
 - ♻️ **Auto-import** — existing archive folders on disk that aren't in the DB yet get indexed on startup (TypeScript server)
 
