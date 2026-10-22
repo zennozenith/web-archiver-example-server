@@ -2,6 +2,7 @@
 name = "myopic"
 version = "0.0.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 axum = { version = "0.8.9", features = ["macros", "multipart", "ws"] }

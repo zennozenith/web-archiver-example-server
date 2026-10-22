@@ -2,6 +2,7 @@
   "name": "web-archive-server",
   "private": true,
   "type": "module",
+  "license": "MIT OR Apache-2.0",
   "scripts": {
     "start": "bun run server.ts",
     "dev": "bun --watch server.ts"
